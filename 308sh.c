@@ -22,14 +22,15 @@ int main (int argc, char* argv[])
 	/*
 	Input loop
 	*/
-	char *cmd;
-
+	
 	while (1)
 	{
-		cmd = NULL;
-		// Accept user input
-		char *uinput;
+		fflush(stdin);
 		printf("%s",prompt); // print prompt
+
+		// Accept user input
+		char *cmd;
+		char *uinput;
 		fgets(uinput, 64, stdin);
 
 		// Parse command and arguments
@@ -76,24 +77,21 @@ int main (int argc, char* argv[])
 
 		} else {
 			// execute file
-			if (cmd == NULL) {
-				perror("No path specified.\n");
-				continue;
-			}
-
-			// seperate arguments
-			int i = 0;
 			int stat;
-			char *arg_list[MAX_ARGS];
-
-			while (uinput != NULL) {
-				arg_list[i++] = uinput;
-				uinput = strtok(NULL," ");
-			}
-			arg_list[i++] = NULL;
-
 			int pid = fork();
 			if (pid == 0) {
+				pid = getpid();
+				printf("[PID:%d] running [%s]\n", pid, cmd);
+				
+				// seperate arguments
+				int i = 0;
+				char *arg_list[MAX_ARGS];
+				while (uinput != NULL) {
+					arg_list[i++] = uinput;
+					uinput = strtok(NULL," ");
+				}
+				arg_list[i++] = NULL;
+
 				execvp(arg_list[0], arg_list);
 				err(1, "execvp");
 			} else {
