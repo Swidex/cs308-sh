@@ -51,6 +51,10 @@ char** tokenize(char* a_str, const char a_delim)
 
 int processTokens(char** tokens)
 {
+	int status;
+	int p = waitpid(-1, &status, WNOHANG);
+	if (p > 0) printf("child(%d) exited with status %d\n",p, WEXITSTATUS(status));
+
 	if (strcmp(*(tokens), "exit") == 0) {
 		// terminate process
 		return 1;
@@ -93,40 +97,34 @@ int processTokens(char** tokens)
 		for (vargc = 0; *(tokens+vargc); vargc++);
 		if (strcmp(*(tokens+vargc-1),"&") == 0) bg = 1;
 
-		int wid = fork();
-		if (wid == 0) {
-			int pid = fork();
-			if (pid == 0) {
-				/* Child Process */
-				pid = getpid();
-				
-				/* Announce execution */
-				printf("child(%d) executing (", pid);
-				for (i = 0; *(tokens+i); i++) printf(" %s",*(tokens+i));
-				if (bg) {
-					printf(" ) in background.\n");
-				} else { printf(" )\n"); }
+		int pid = fork();
+		if (pid == 0) {
+			/* Child Process */
+			pid = getpid();
+			
+			/* Announce execution */
+			printf("child(%d) executing (", pid);
+			for (i = 0; *(tokens+i); i++) printf(" %s",*(tokens+i));
+			if (bg) {
+				printf(" ) in background.\n");
+			} else { printf(" )\n"); }
 
-				char *vargs[vargc+1];
-				for (i = 0; i <= vargc; i++) {
-					vargs[i] = *(tokens+i);
-				}
-				vargs[vargc] = NULL;
-				if (vargs[vargc - 1] == "&") vargs[vargc - 1] = NULL;
-
-				execvp(vargs[0], vargs);
-				err(1, "execvp");
-			} else {
-				// watcher process
-				waitpid(pid, &stat, 0);
-				fprintf(stderr, "\nchild(%d) exited with status %d\n",pid, WEXITSTATUS(stat));
+			char *vargs[vargc+1];
+			for (i = 0; i <= vargc; i++) {
+				vargs[i] = *(tokens+i);
 			}
+			vargs[vargc] = NULL;
+			if (vargs[vargc - 1] == "&") vargs[vargc - 1] = NULL;
+
+			execvp(vargs[0], vargs);
+			err(1, "execvp");
 		} else {
 			if (bg) {
 				sleep(1);
 				return 0;
 			} else {
-				wait(NULL);
+				waitpid(pid, &stat, 0);
+				printf("child(%d) exited with status %d\n",pid, WEXITSTATUS(stat));
 			}
 		}
 	}
