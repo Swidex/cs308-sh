@@ -4,12 +4,7 @@
 #include <wait.h>
 #include <assert.h>
 
-#define MAX_ARGS 10
-#define MAX_JOBS 2
-
-
 char *prompt;
-
 
 char** tokenize(char* a_str, const char a_delim)
 {
@@ -114,7 +109,7 @@ int processTokens(char** tokens)
 				vargs[i] = *(tokens+i);
 			}
 			vargs[vargc] = NULL;
-			if (vargs[vargc - 1] == "&") vargs[vargc - 1] = NULL;
+			if (strcmp(vargs[vargc - 1], "&") == 0) vargs[vargc - 1] = NULL;
 
 			execvp(vargs[0], vargs);
 			err(1, "execvp");
