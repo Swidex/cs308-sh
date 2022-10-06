@@ -156,14 +156,14 @@ int main (int argc, char* argv[])
 		
 		tokens = tokenize(uinput, ' ');
 		if (tokens) {
-			processTokens(tokens);
-
+			int ex = processTokens(tokens);
 			/* Free tokens from memory */
 			int i;
 			for (i = 0; *(tokens + i); i++) {
 				free(*(tokens + i));
 			}
 			free(tokens);
+			if (ex) break;
 		}
 	}
 
